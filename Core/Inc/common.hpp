@@ -6,20 +6,14 @@
 #include "stm32l4xx_hal_i2c.h"
 #include "stm32l4xx_hal_tim.h"
 #include "stm32l4xx_hal_uart.h"
-#include "usart.h"
-#include <array>
-#include <bit>
-#include <cstdint>
-#include <cstdio>
-#include <cstring>
 
-namespace BH1750 {
+namespace Utility {
 
-    using TimerHandle = TIM_HandleTypeDef*;
+    using TIMHandle = TIM_HandleTypeDef*;
     using GPIOHandle = GPIO_TypeDef*;
     using UARTHandle = UART_HandleTypeDef*;
     using I2CBusHandle = I2C_HandleTypeDef*;
 
-}; // namespace BH1750
+}; // namespace Utility
 
 #endif // COMMON_HPP

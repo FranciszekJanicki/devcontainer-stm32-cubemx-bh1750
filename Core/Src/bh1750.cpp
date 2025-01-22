@@ -2,6 +2,7 @@
 #include "stm32l4xx_hal.h"
 #include <algorithm>
 #include <cstdint>
+#include <optional>
 #include <utility>
 
 using namespace BH1750;
@@ -9,11 +10,13 @@ using Mode = BH1750::BH1750::Mode;
 using Raw = BH1750::BH1750::Raw;
 using Instruction = BH1750::BH1750::Instruction;
 using Scaled = BH1750::BH1750::Scaled;
+using OptionalRaw = BH1750::BH1750::OptionalRaw;
+using OptionalScaled = BH1750::BH1750::OptionalScaled;
 
 namespace BH1750 {
 
-    BH1750::BH1750(I2CDevice const& i2c_device, std::uint8_t const mtreg, Mode const mode) noexcept :
-        i2c_device_{i2c_device}, mtreg_{mtreg}, mode_{mode}
+    BH1750::BH1750(I2CDevice&& i2c_device, std::uint8_t const mtreg, Mode const mode) noexcept :
+        mtreg_{mtreg}, mode_{mode}, i2c_device_{std::forward<I2CDevice>(i2c_device)}
     {
         this->initialize(mtreg);
     }
@@ -23,37 +26,29 @@ namespace BH1750 {
         this->deinitialize();
     }
 
-    Raw BH1750::get_light_raw() const noexcept
+    OptionalRaw BH1750::get_light_raw() const noexcept
     {
         if (!this->initialized_) {
-            std::unreachable();
+            OptionalRaw{std::nullopt};
         }
         this->device_trigger_conversion();
-        return this->i2c_device_.receive_word();
+        return OptionalRaw{this->i2c_device_.receive_word()};
     }
 
-    Scaled BH1750::get_light_scaled() const noexcept
+    OptionalScaled BH1750::get_light_scaled() const noexcept
     {
-        return raw_to_scaled(this->get_light_raw(), this->mode_, this->mtreg_);
+        return this->get_light_raw().transform(
+            [this](Raw const raw) { return raw_to_scaled(raw, this->mode_, this->mtreg_); });
     }
 
     Scaled BH1750::mode_to_resolution(Mode const mode) noexcept
     {
-        switch (mode) {
-            case Mode::CONTINUOUS_HIGH_RES_MODE:
-                return 1.0F;
-            case Mode::CONTINUOUS_HIGH_RES_MODE_2:
-                return 0.5F;
-            case Mode::CONTINUOUS_LOW_RES_MODE:
-                return 4.0F;
-            case Mode::ONETIME_HIGH_RES_MODE:
-                return 1.0F;
-            case Mode::ONETIME_HIGH_RES_MODE_2:
-                return 0.5F;
-            case Mode::ONETIME_LOW_RES_MODE:
-                return 4.0F;
-            default:
-                return 0.0F;
+        if (mode == Mode::CONTINUOUS_HIGH_RES_MODE || mode == Mode::ONETIME_HIGH_RES_MODE) {
+            return 1.0F;
+        } else if (mode == Mode::CONTINUOUS_HIGH_RES_MODE_2 || mode == Mode::ONETIME_HIGH_RES_MODE_2) {
+            return 0.5F;
+        } else if (mode == Mode::CONTINUOUS_LOW_RES_MODE || mode == Mode::ONETIME_LOW_RES_MODE) {
+            return 4.0F;
         }
     }
 
@@ -82,7 +77,7 @@ namespace BH1750 {
 
     bool BH1750::is_valid_device_id() const noexcept
     {
-        return this->get_device_id() == this->i2c_device_.device_address;
+        return this->get_device_id() == this->i2c_device_.device_address();
     }
 
     std::uint8_t BH1750::get_device_id() const noexcept
@@ -126,5 +121,5 @@ namespace BH1750 {
     {
         this->set_mode(this->mode_);
     }
-
+    
 }; // namespace BH1750

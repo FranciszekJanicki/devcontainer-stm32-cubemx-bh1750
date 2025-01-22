@@ -6,6 +6,7 @@
 #include <cmath>
 #include <cstddef>
 #include <cstdint>
+#include <optional>
 #include <utility>
 
 namespace BH1750 {
@@ -34,13 +35,16 @@ namespace BH1750 {
 
         using Raw = std::uint8_t;
         using Scaled = std::float_t;
+        using OptionalRaw = std::optional<Raw>;
+        using OptionalScaled = std::optional<Scaled>;
+        using I2CDevice = Utility::I2CDevice;
 
         static constexpr std::uint8_t MTREG_MIN = 0x1F;
         static constexpr std::uint8_t MTREG_DEFAULT = 0x45;
         static constexpr std::uint8_t MTREG_MAX = 0xFE;
 
         BH1750() noexcept = default;
-        BH1750(I2CDevice const& i2c_device, std::uint8_t const mtreg, Mode const mode) noexcept;
+        BH1750(I2CDevice&& i2c_device, std::uint8_t const mtreg, Mode const mode) noexcept;
 
         BH1750(BH1750 const& other) noexcept = delete;
         BH1750(BH1750&& other) noexcept = default;
@@ -50,8 +54,8 @@ namespace BH1750 {
 
         ~BH1750() noexcept;
 
-        [[nodiscard]] Raw get_light_raw() const noexcept;
-        [[nodiscard]] Scaled get_light_scaled() const noexcept;
+        [[nodiscard]] OptionalRaw get_light_raw() const noexcept;
+        [[nodiscard]] OptionalScaled get_light_scaled() const noexcept;
 
     private:
         static Scaled mode_to_resolution(Mode const mode) noexcept;
@@ -76,10 +80,10 @@ namespace BH1750 {
 
         bool initialized_{false};
 
-        I2CDevice i2c_device_{};
-
         std::uint8_t mtreg_{};
         Mode mode_{};
+
+        I2CDevice i2c_device_{};
     };
 
 }; // namespace BH1750

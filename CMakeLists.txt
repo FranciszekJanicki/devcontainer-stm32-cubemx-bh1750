@@ -39,6 +39,7 @@ target_sources(${CMAKE_PROJECT_NAME} PRIVATE
     "Core/Src/syscalls.c"
     "Core/Src/main.cpp"
     "Core/Inc/i2c_device.hpp"
+    "Core/Src/i2c_device.cpp"
     "Core/Src/bh1750.cpp"
     "Core/Src/i2c.c"
     "Core/Src/gpio.c"

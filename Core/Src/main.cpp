@@ -4,6 +4,7 @@
 #include "i2c.h"
 #include "i2c_device.hpp"
 #include "system_clock.h"
+#include "usart.h"
 #include <cstdio>
 
 int main()
@@ -16,15 +17,15 @@ int main()
     MX_USART2_UART_Init();
 
     using BH1750 = BH1750::BH1750;
-    using namespace BH1750;
+    using namespace Utility;
 
-    I2CDevice i2c_device{.i2c_bus = &hi2c1, .device_address = std::to_underlying(BH1750::DevAddress::AD0_LOW)};
+    I2CDevice i2c_device{&hi2c1, std::to_underlying(BH1750::DevAddress::AD0_LOW)};
 
     BH1750
-    bh1750{i2c_device, BH1750::MTREG_DEFAULT, BH1750::Mode::ONETIME_HIGH_RES_MODE};
+    bh1750{std::move(i2c_device), BH1750::MTREG_DEFAULT, BH1750::Mode::ONETIME_HIGH_RES_MODE};
 
     while (true) {
-        printf("Light: %f\n\r", bh1750.get_light_scaled());
+        printf("Light: %f\n\r", bh1750.get_light_scaled().value());
         HAL_Delay(50);
     }
 
