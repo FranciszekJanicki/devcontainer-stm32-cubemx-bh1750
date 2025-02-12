@@ -33,10 +33,6 @@ namespace BH1750 {
             ONETIME_LOW_RES_MODE = 0x23,
         };
 
-        using Raw = std::uint8_t;
-        using Scaled = std::float_t;
-        using OptionalRaw = std::optional<Raw>;
-        using OptionalScaled = std::optional<Scaled>;
         using I2CDevice = Utility::I2CDevice;
 
         static constexpr std::uint8_t MTREG_MIN = 0x1F;
@@ -54,14 +50,14 @@ namespace BH1750 {
 
         ~BH1750() noexcept;
 
-        [[nodiscard]] OptionalRaw get_light_raw() const noexcept;
-        [[nodiscard]] OptionalScaled get_light_scaled() const noexcept;
+        [[nodiscard]] std::optional<std::uint16_t> get_light_raw() const noexcept;
+        [[nodiscard]] std::optional<float> get_light_scaled() const noexcept;
 
     private:
-        static Scaled mode_to_resolution(Mode const mode) noexcept;
-        static Scaled raw_to_scaled(Raw const count, Mode const mode, std::uint8_t const mtreg) noexcept;
+        static float mode_to_resolution(Mode const mode) noexcept;
+        static float raw_to_scaled(std::uint16_t const count, Mode const mode, std::uint8_t const mtreg) noexcept;
 
-        static constexpr Scaled MEASUREMENT_ACCURACY{1.2F};
+        static constexpr float MEASUREMENT_ACCURACY{1.2F};
 
         bool is_valid_device_id() const noexcept;
         std::uint8_t get_device_id() const noexcept;

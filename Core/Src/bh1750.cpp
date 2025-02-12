@@ -5,14 +5,6 @@
 #include <optional>
 #include <utility>
 
-using namespace BH1750;
-using Mode = BH1750::BH1750::Mode;
-using Raw = BH1750::BH1750::Raw;
-using Instruction = BH1750::BH1750::Instruction;
-using Scaled = BH1750::BH1750::Scaled;
-using OptionalRaw = BH1750::BH1750::OptionalRaw;
-using OptionalScaled = BH1750::BH1750::OptionalScaled;
-
 namespace BH1750 {
 
     BH1750::BH1750(I2CDevice&& i2c_device, std::uint8_t const mtreg, Mode const mode) noexcept :
@@ -26,22 +18,22 @@ namespace BH1750 {
         this->deinitialize();
     }
 
-    OptionalRaw BH1750::get_light_raw() const noexcept
+    std::optional<std::uint16_t> BH1750::get_light_raw() const noexcept
     {
         if (!this->initialized_) {
-            OptionalRaw{std::nullopt};
+            std::optional<std::uint16_t>{std::nullopt};
         }
         this->device_trigger_conversion();
-        return OptionalRaw{this->i2c_device_.receive_word()};
+        return std::optional<std::uint16_t>{this->i2c_device_.receive_word()};
     }
 
-    OptionalScaled BH1750::get_light_scaled() const noexcept
+    std::optional<float> BH1750::get_light_scaled() const noexcept
     {
         return this->get_light_raw().transform(
-            [this](Raw const raw) { return raw_to_scaled(raw, this->mode_, this->mtreg_); });
+            [this](std::uint16_t const raw) { return raw_to_scaled(raw, this->mode_, this->mtreg_); });
     }
 
-    Scaled BH1750::mode_to_resolution(Mode const mode) noexcept
+    float BH1750::mode_to_resolution(Mode const mode) noexcept
     {
         if (mode == Mode::CONTINUOUS_HIGH_RES_MODE || mode == Mode::ONETIME_HIGH_RES_MODE) {
             return 1.0F;
@@ -52,7 +44,7 @@ namespace BH1750 {
         }
     }
 
-    Scaled BH1750::raw_to_scaled(Raw const raw, Mode const mode, std::uint8_t const mtreg) noexcept
+    float BH1750::raw_to_scaled(std::uint16_t const raw, Mode const mode, std::uint8_t const mtreg) noexcept
     {
         return raw * (1.0F / MEASUREMENT_ACCURACY) * (MTREG_DEFAULT / mtreg) * mode_to_resolution(mode);
     }
@@ -77,7 +69,7 @@ namespace BH1750 {
 
     bool BH1750::is_valid_device_id() const noexcept
     {
-        return this->get_device_id() == this->i2c_device_.device_address();
+        return this->get_device_id() == this->i2c_device_.dev_address();
     }
 
     std::uint8_t BH1750::get_device_id() const noexcept
@@ -121,5 +113,5 @@ namespace BH1750 {
     {
         this->set_mode(this->mode_);
     }
-    
+
 }; // namespace BH1750
