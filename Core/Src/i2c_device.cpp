@@ -57,12 +57,12 @@ namespace Utility {
                                       std::uint8_t const position,
                                       std::size_t const size) const noexcept
     {
-        return get_bits(this->read_byte(reg_address), size, position);
+        return Utility::read_bits(this->read_byte(reg_address), size, position);
     }
 
     bool I2CDevice::read_bit(std::uint8_t const reg_address, std::uint8_t const position) const noexcept
     {
-        return get_bit(this->read_byte(reg_address), position);
+        return Utility::read_bit(this->read_byte(reg_address), position);
     }
 
     void I2CDevice::write_dword(std::uint8_t const reg_address, std::uint32_t const dword) const noexcept
@@ -86,7 +86,7 @@ namespace Utility {
                                std::size_t const size) const noexcept
     {
         std::uint8_t write{this->read_byte(reg_address)};
-        set_bits(write, bits, size, position);
+        Utility::write_bits(write, bits, size, position);
         this->write_byte(reg_address, write);
     }
 
@@ -94,7 +94,7 @@ namespace Utility {
     I2CDevice::write_bit(std::uint8_t const reg_address, bool const bit, std::uint8_t const position) const noexcept
     {
         std::uint8_t write{this->read_byte(reg_address)};
-        set_bit(write, bit, position);
+        Utility::write_bit(write, bit, position);
         this->write_byte(reg_address, write);
     }
 
